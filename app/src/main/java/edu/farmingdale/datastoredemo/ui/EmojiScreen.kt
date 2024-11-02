@@ -137,34 +137,37 @@ fun EmojiReleaseLinearLayout(
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val cntxt = LocalContext.current
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-    ) {
-        items(
-            items = LocalEmojiData.EmojiList,
-            key = { e -> e }
+    //created map to reference emoji to text descriptions
+    val map = LocalEmojiData.EmojiToText
+    DataStoreDemoTheme {
+        LazyColumn(
+            modifier = modifier,
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
         ) {
-            e ->
-            Card(
-                //Created onClick to make each card clickable with Toast comment
-                onClick = {
-                    Toast.makeText(cntxt, "CLICK SMILEY", Toast.LENGTH_SHORT).show()
-                    println("Clicked Linear Layout. Toast or No Toast? $e")
-                },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    text = e, fontSize = 50.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimensionResource(R.dimen.padding_medium)),
-                    textAlign = TextAlign.Center
-                )
+            items(
+                items = LocalEmojiData.EmojiList,
+                key = { e -> e }
+            ) { e ->
+                Card(
+                    //Created onClick to make each card clickable with Toast comment
+                    onClick = {
+                        Toast.makeText(cntxt, map.get(e), Toast.LENGTH_SHORT).show()
+                    },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+
+                    Text(
+                        text = e, fontSize = 50.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(R.dimen.padding_medium)),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -176,6 +179,8 @@ fun EmojiReleaseGridLayout(
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val cntxt = LocalContext.current
+    val map = LocalEmojiData.EmojiToText
+
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(3),
@@ -190,8 +195,7 @@ fun EmojiReleaseGridLayout(
             Card(
                 //Created onClick to make each card clickable with Toast comment
                 onClick = {
-                    println("Clicked Grid Layout. Toast or No Toast? $e")
-                    Toast.makeText(cntxt, "CLICK SMILEY", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(cntxt, map.get(e), Toast.LENGTH_SHORT).show()
                 },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primary

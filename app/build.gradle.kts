@@ -60,3 +60,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
 }
+dependencies {
+    val emoji2_version = "1.5.0"
+
+    implementation("androidx.emoji2:emoji2:$emoji2_version")
+    implementation("androidx.emoji2:emoji2-views:$emoji2_version")
+    implementation("androidx.emoji2:emoji2-views-helper:$emoji2_version")
+}
