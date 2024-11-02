@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,13 +35,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.farmingdale.datastoredemo.R
-
 import edu.farmingdale.datastoredemo.data.local.LocalEmojiData
+import edu.farmingdale.datastoredemo.ui.theme.DataStoreDemoTheme
 
 /*
  * Screen level composable
@@ -56,6 +54,8 @@ fun EmojiReleaseApp(
     EmojiScreen(
         uiState = emojiViewModel.uiState.collectAsState().value,
         selectLayout = emojiViewModel::selectLayout,
+        themeState = emojiViewModel.themeState.collectAsState().value,
+        selectTheme = emojiViewModel::selectTheme
     )
 }
 
@@ -63,50 +63,70 @@ fun EmojiReleaseApp(
 @Composable
 private fun EmojiScreen(
     uiState: EmojiReleaseUiState,
+    themeState: EmojiReleaseThemeState,
+    selectTheme: (Boolean) -> Unit,
     selectLayout: (Boolean) -> Unit
 ) {
     val isLinearLayout = uiState.isLinearLayout
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.top_bar_name)) },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            selectLayout(!isLinearLayout)
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(uiState.toggleIcon),
-                            contentDescription = stringResource(uiState.toggleContentDescription),
-                            tint = MaterialTheme.colorScheme.onBackground
+    //load darkMode variable from preferences
+    var isDarkMode = themeState.isDarkTheme
+    //Apply preference to current theme
+    DataStoreDemoTheme(darkTheme = isDarkMode) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.top_bar_name)) },
+                    actions = {
+                        //Added a Switch to the top bar for easy accessibility
+                        Switch(
+                            checked = isDarkMode,
+                            onCheckedChange = {
+                                isDarkMode = it
+                                //when switched change themes then save it
+                                selectTheme(isDarkMode)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer
+                            )
                         )
-                    }
-
-
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.inversePrimary
+                        IconButton(
+                            onClick = {
+                                selectLayout(!isLinearLayout)
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(uiState.toggleIcon),
+                                contentDescription = stringResource(uiState.toggleContentDescription),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.inversePrimary
+                    )
                 )
-            )
-        }
-    ) { innerPadding ->
-        val modifier = Modifier
-            .padding(
-                top = dimensionResource(R.dimen.padding_medium),
-                start = dimensionResource(R.dimen.padding_medium),
-                end = dimensionResource(R.dimen.padding_medium),
-            )
-        if (isLinearLayout) {
-            EmojiReleaseLinearLayout(
-                modifier = modifier.fillMaxWidth(),
-                contentPadding = innerPadding
-            )
-        } else {
-            EmojiReleaseGridLayout(
-                modifier = modifier,
-                contentPadding = innerPadding,
-            )
+            }
+        ) { innerPadding ->
+            val modifier = Modifier
+                .padding(
+                    top = dimensionResource(R.dimen.padding_medium),
+                    start = dimensionResource(R.dimen.padding_medium),
+                    end = dimensionResource(R.dimen.padding_medium),
+                )
+            if (isLinearLayout) {
+                EmojiReleaseLinearLayout(
+                    modifier = modifier.fillMaxWidth(),
+                    contentPadding = innerPadding
+                )
+            } else {
+                EmojiReleaseGridLayout(
+                    modifier = modifier,
+                    contentPadding = innerPadding,
+                )
+            }
         }
     }
 }
@@ -125,22 +145,26 @@ fun EmojiReleaseLinearLayout(
         items(
             items = LocalEmojiData.EmojiList,
             key = { e -> e }
-        ) { e ->
+        ) {
+            e ->
             Card(
+                //Created onClick to make each card clickable with Toast comment
+                onClick = {
+                    Toast.makeText(cntxt, "CLICK SMILEY", Toast.LENGTH_SHORT).show()
+                    println("Clicked Linear Layout. Toast or No Toast? $e")
+                },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                    Text(
-                        text = e, fontSize = 50.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimensionResource(R.dimen.padding_medium)),
-                        textAlign = TextAlign.Center
-                    )
-
-
+                Text(
+                    text = e, fontSize = 50.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(R.dimen.padding_medium)),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
@@ -151,6 +175,7 @@ fun EmojiReleaseGridLayout(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
+    val cntxt = LocalContext.current
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(3),
@@ -163,6 +188,11 @@ fun EmojiReleaseGridLayout(
             key = { e -> e }
         ) { e ->
             Card(
+                //Created onClick to make each card clickable with Toast comment
+                onClick = {
+                    println("Clicked Grid Layout. Toast or No Toast? $e")
+                    Toast.makeText(cntxt, "CLICK SMILEY", Toast.LENGTH_SHORT).show()
+                },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),

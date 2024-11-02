@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -32,6 +33,15 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+data class ThemeState(var theme: Theme) {
+    fun toggleTheme() {
+        theme = if (theme == Theme.Light) Theme.Dark else Theme.Light
+    }
+}
+
+enum class Theme {
+    Light, Dark
+}
 
 @Composable
 fun DataStoreDemoTheme(
